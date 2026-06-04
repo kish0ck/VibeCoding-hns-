@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:8501/_stcore/health)",
+      "Bash(python *)",
+      "Bash(pip install *)"
+    ]
+  }
+}
