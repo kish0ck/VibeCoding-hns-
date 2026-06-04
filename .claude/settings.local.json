@@ -5,5 +5,8 @@
       "Bash(python *)",
       "Bash(pip install *)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

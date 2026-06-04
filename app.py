@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
+import os
 
 st.set_page_config(page_title="홈앤쇼핑 일일 매출 현황", layout="wide")
 
@@ -19,8 +21,40 @@ st.markdown("""
 
 st.title("📊 홈앤쇼핑 일일 매출 현황")
 
-df = pd.read_csv("data/sales.csv")
-df['date'] = pd.to_datetime(df['date'])
+@st.cache_data
+def fetch_sales_data():
+    """Supabase REST API에서 판매 데이터 조회"""
+    try:
+        supabase_url = st.secrets["supabase_url"]
+        supabase_key = st.secrets["supabase_key"]
+    except KeyError:
+        st.error("❌ Supabase 설정이 필요합니다.")
+        st.error("📝 .streamlit/secrets.toml 파일을 확인하세요:")
+        st.error("""
+        supabase_url = "https://..."
+        supabase_key = "..."
+        """)
+        st.stop()
+
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {supabase_key}",
+        "Content-Type": "application/json"
+    }
+
+    url = f"{supabase_url}/rest/v1/sales?select=*"
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        st.error(f"❌ Supabase 연결 실패: {response.status_code}")
+        st.error(response.text)
+        st.stop()
+
+    df = pd.DataFrame(response.json())
+    df['date'] = pd.to_datetime(df['date'])
+    return df
+
+df = fetch_sales_data()
 
 daily = df.groupby('date')['sales'].sum().reset_index().sort_values('date')
 
